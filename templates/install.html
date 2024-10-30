@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Install Klippain</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Klippain Installer</h1>
+    <form id="installForm">
+        <label for="install_confirm">Confirm installation:</label>
+        <select name="install_confirm" id="install_confirm">
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+        </select><br>
+
+        <label for="mcu_template">Select Main MCU Template:</label>
+        <select name="mcu_template" id="mcu_template">
+            {% for file in main_mcu_files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label for="toolhead_template">Toolhead MCU Template:</label>
+        <select name="toolhead_template" id="toolhead_template">
+            <option value="">None</option>
+            {% for file in toolhead_mcu_files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label for="mmu_template">MMU/ERCF MCU Template:</label>
+        <select name="mmu_template" id="mmu_template">
+            <option value="">None</option>
+            {% for file in mmu_mcu_files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select><br>
+
+        <button type="button" onclick="startInstall()">Start Installation</button>
+    </form>
+
+    <h2>Installation Status</h2>
+    <div id="statusContainer">
+        <p>Waiting for installation to start...</p>
+    </div>
+
+    <script>
+        function startInstall() {
+            $.post("/install", $("#installForm").serialize(), function(response) {
+                if (response.success) {
+                    checkInstallProgress();
+                }
+            });
+        }
+
+        function checkInstallProgress() {
+            setInterval(function() {
+                $.get("/install_progress", function(data) {
+                    $("#statusContainer").empty();
+                    data.status.forEach(function(status) {
+                        $("#statusContainer").append("<p>" + status + "</p>");
+                    });
+                    if (data.completed) {
+                        window.location.href = "/configure";  // Redirect to configuration page
+                    }
+                });
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

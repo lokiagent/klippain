@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Selection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Select Configurations</h1>
+    <form method="POST">
+        <h2>Hardware Components</h2>
+
+        <div class="subcategory-container">
+            {% for category, items in configurations.items() %}
+                {% if category.startswith('hardware_components') %}
+                    {% set multi_select = category in [
+                        'hardware_components_fans',
+                        'hardware_components_servos',
+                        'hardware_components_temperature_sensors',
+                        'hardware_components_lights_and_leds',
+                        'hardware_components_accelerometer',
+                        'hardware_components_filters'
+                    ] %}
+
+                    {% if category == 'hardware_components_machine_axis' %}
+                        <div class="subcategory-box">
+                            <h3>X-Axis</h3>
+                            <div class="item-list">
+                                {% for item in items if 'X/' in item %}
+                                    <label>
+                                        <input type="{{ 'checkbox' if multi_select else 'radio' }}" name="configs{{ '_'+category if not multi_select else '' }}" value="{{ item }}">
+                                        {{ item.split('/')[-1].replace('.cfg', '').replace('_', ' ').capitalize() }}
+                                    </label>
+                                    {% if loop.index % 7 == 0 and not loop.last %}
+                                        <div class="column-break"></div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="subcategory-box">
+                            <h3>Y-Axis</h3>
+                            <div class="item-list">
+                                {% for item in items if 'Y/' in item %}
+                                    <label>
+                                        <input type="{{ 'checkbox' if multi_select else 'radio' }}" name="configs{{ '_'+category if not multi_select else '' }}" value="{{ item }}">
+                                        {{ item.split('/')[-1].replace('.cfg', '').replace('_', ' ').capitalize() }}
+                                    </label>
+                                    {% if loop.index % 7 == 0 and not loop.last %}
+                                        <div class="column-break"></div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="subcategory-box">
+                            <h3>Z-Axis</h3>
+                            <div class="item-list">
+                                {% for item in items if 'Z/' in item %}
+                                    <label>
+                                        <input type="{{ 'checkbox' if multi_select else 'radio' }}" name="configs{{ '_'+category if not multi_select else '' }}" value="{{ item }}">
+                                        {{ item.split('/')[-1].replace('.cfg', '').replace('_', ' ').capitalize() }}
+                                    </label>
+                                    {% if loop.index % 7 == 0 and not loop.last %}
+                                        <div class="column-break"></div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="subcategory-box">
+                            <h3>{{ category.split('_', 2)[-1].replace('_', ' ').capitalize() }}</h3>
+                            <div class="item-list">
+                                {% for item in items %}
+                                    <label>
+                                        <input type="{{ 'checkbox' if multi_select else 'radio' }}" name="configs{{ '_'+category if not multi_select else '' }}" value="{{ item }}">
+                                        {{ item.split('/')[-1].replace('.cfg', '').replace('_', ' ').capitalize() }}
+                                    </label>
+                                    {% if loop.index % 7 == 0 and not loop.last %}
+                                        <div class="column-break"></div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <h2>Software Components</h2>
+        <div class="subcategory-container">
+            {% for category, items in configurations.items() %}
+                {% if category.startswith('klipper_software_components') %}
+                    <div class="subcategory-box">
+                        <h3>{{ category.split('_', 3)[-1].replace('_', ' ').capitalize() }}</h3>
+                        <div class="item-list">
+                            {% for item in items %}
+                                <label>
+                                    <input type="radio" name="configs_{{ category }}" value="{{ item }}">
+                                    {{ item.split('/')[-1].replace('.cfg', '').replace('_', ' ').capitalize() }}
+                                </label>
+                                {% if loop.index % 7 == 0 and not loop.last %}
+                                    <div class="column-break"></div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,76 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #121212; /* Dark background */
+    color: #e0e0e0; /* Light text color */
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #ffffff; /* White header */
+    text-align: center;
+}
+
+h2 {
+    color: #bb86fc; /* Light purple for subheadings */
+    border-bottom: 2px solid #bb86fc;
+    padding-bottom: 10px;
+}
+
+.subcategory-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start; /* Align items to the start */
+}
+
+.subcategory-box {
+    background-color: #1e1e1e; /* Dark gray background for boxes */
+    border: 1px solid #333; /* Darker border */
+    border-radius: 4px;
+    padding: 10px; /* Padding for boxes */
+    margin: 10px;
+    flex: 0 1 auto; /* Shrink to fit content */
+    max-width: 250px; /* Set a max width for the boxes */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5); /* Subtle shadow */
+}
+
+label {
+    display: block;
+    margin: 5px 0;
+    padding: 5px;
+    transition: background-color 0.3s;
+}
+
+label:hover {
+    background-color: #444; /* Darker background on hover */
+}
+
+button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #6200ee; /* Purple button color */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #3700b3; /* Darker purple on hover */
+}
+
+.item-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.item-list label {
+    flex: 1 0 calc(50% - 10px); /* Two columns */
+    margin-bottom: 5px; /* Space between items */
+}
+
+.column-break {
+    flex-basis: 100%; /* Start a new row */
+}

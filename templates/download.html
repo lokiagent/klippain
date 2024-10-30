@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Download Klippain Repository</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Download Klippain Repository</h1>
+    <form action="{{ url_for('download') }}" method="post">
+        <button type="submit">Download and Proceed to Install</button>
+    </form>
+
+    <h2>Download Status</h2>
+    <div id="statusContainer">
+        {% for message in status %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+</body>
+</html>
