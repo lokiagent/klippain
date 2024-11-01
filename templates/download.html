@@ -2,20 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Download Klippain Repository</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        $(document).ready(function() {
+            function fetchStatus() {
+                $.getJSON('/download_status', function(data) {
+                    $('#status').html('');
+                    data.status.forEach(function(status) {
+                        $('#status').append('<p>' + status + '</p>');
+                    });
+                });
+            }
+
+            // Fetch status every 2 seconds
+            setInterval(fetchStatus, 2000);
+        });
+    </script>
 </head>
 <body>
-    <h1>Download Klippain Repository</h1>
+    <h1>Download Page</h1>
     <form action="{{ url_for('download') }}" method="post">
-        <button type="submit">Download and Proceed to Install</button>
+        <button type="submit">Start Download</button>
     </form>
-
-    <h2>Download Status</h2>
-    <div id="statusContainer">
-        {% for message in status %}
-            <p>{{ message }}</p>
-        {% endfor %}
+    <div id="status">
+        <!-- Status updates will be inserted here -->
     </div>
 </body>
 </html>

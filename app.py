@@ -14,6 +14,10 @@ BACKUP_PATH = os.path.expanduser('~/klippain_config_backups')
 FRIX_BRANCH = 'main'
 MOONRAKER_API_URL = 'http://localhost:7125/printer/restart'  # Moonraker API endpoint for restarting Klipper
 
+# Get paths from environment variables
+PRINTER_VARS_PATH = os.getenv('PRINTER_VARS_PATH', '~/klippain_config/printer.vars')
+PRINTER_CFG_PATH = os.getenv('PRINTER_CFG_PATH', '~/klippain_config/user_templates/printer.cfg')
+
 # Status message storage
 install_status = []
 
@@ -260,8 +264,10 @@ def install_progress():
     except Exception as e:
         append_status(f"Error during installation: {e}")
         return jsonify(status=install_status)
-
-    file_path = '/home/pi/klippain/printer.vars'  # Update this path
+    
+@app.route('/configure', methods=['GET', 'POST'])
+def configure():
+    file_path = PRINTER_VARS_PATH  # Use environment variable
     configurations = parse_printer_vars(file_path)
     if request.method == 'POST':
         selected_configs = request.form.getlist('configs')  # Multi-select
@@ -270,58 +276,26 @@ def install_progress():
         modifications = []
         # Uncomment selected checkbox items
         for config in selected_configs:
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'r') as file:
+            with open(PRINTER_CFG_PATH, 'r') as file:  # Use environment variable
                 lines = file.readlines()
             for i, line in enumerate(lines):
                 if config in line and line.startswith('#'):
                     lines[i] = line.lstrip('#').rstrip() + '\n'  # Uncomment line
                     modifications.append(line.strip())  # Add the modified line for output
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'w') as file:
+            with open(PRINTER_CFG_PATH, 'w') as file:  # Use environment variable
                 file.writelines(lines)
         # Uncomment selected radio items
         for key, selected_radio in radio_selections.items():
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'r') as file:
+            with open(PRINTER_CFG_PATH, 'r') as file:  # Use environment variable
                 lines = file.readlines()
             for i, line in enumerate(lines):
                 if selected_radio in line and line.startswith('#'):
                     lines[i] = line.lstrip('#').rstrip() + '\n'  # Uncomment line
                     modifications.append(line.strip())  # Add the modified line for output
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'w') as file:
+            with open(PRINTER_CFG_PATH, 'w') as file:  # Use environment variable
                 file.writelines(lines)
         return render_template('confirmation.html', modifications=modifications)
     return render_template('configure.html', configure=configure)
-
-@app.route('/configure', methods=['GET', 'POST'])
-def configure():
-    file_path = '/home/pi/klippain/printer.vars'  # Update this path
-    configurations = parse_printer_vars(file_path)
-    if request.method == 'POST':
-        selected_configs = request.form.getlist('configs')  # Multi-select
-        radio_selections = {k: v for k, v in request.form.items() if k.startswith('configs_') and v}  # Single-select
-        # Process selected configurations
-        modifications = []
-        # Uncomment selected checkbox items
-        for config in selected_configs:
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'r') as file:
-                lines = file.readlines()
-            for i, line in enumerate(lines):
-                if config in line and line.startswith('#'):
-                    lines[i] = line.lstrip('#').rstrip() + '\n'  # Uncomment line
-                    modifications.append(line.strip())  # Add the modified line for output
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'w') as file:
-                file.writelines(lines)
-        # Uncomment selected radio items
-        for key, selected_radio in radio_selections.items():
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'r') as file:
-                lines = file.readlines()
-            for i, line in enumerate(lines):
-                if selected_radio in line and line.startswith('#'):
-                    lines[i] = line.lstrip('#').rstrip() + '\n'  # Uncomment line
-                    modifications.append(line.strip())  # Add the modified line for output
-            with open('/home/pi/klippain/user_templates/printer.cfg', 'w') as file:
-                file.writelines(lines)
-        return render_template('confirmation.html', modifications=modifications)
-    return render_template('configure.html', configurations=configurations)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
