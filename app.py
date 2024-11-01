@@ -78,7 +78,7 @@ def list_mcu_files(mcu_path):
     return files
 
 def run_parse_config():
-    subprocess.run(["python3", "parse_config.py", "--config", "/home/pi/klippain/user_templates/printer.cfg"], check=True)
+    subprocess.run(["python3", "parse_config.py", "--config", "~/klippain_config/user_templates/printer.cfg"], check=True)
 
 def parse_printer_vars(file_path):
     configurations = {}
@@ -91,7 +91,7 @@ def parse_printer_vars(file_path):
     return configurations
 
 def update_printer_config(selected_configs):
-    printer_cfg_path = '/home/pi/klippain/user_templates/printer.cfg'
+    printer_cfg_path = '~/klippain_config/user_templates/printer.cfg'
     modified_lines = []  # List to store modified lines for confirmation display
 
     # Read the file
@@ -213,7 +213,7 @@ def restart_klipper():
         raise
 
 def run_parse_config():
-    subprocess.run(["python3", "parse_config.py", "--config", "/home/pi/klippain/user_templates/printer.cfg"], check=True)
+    subprocess.run(["python3", "parse_config.py", "--config", "~/klippain_config/user_templates/printer.cfg"], check=True)
 
 def parse_printer_vars(file_path):
     configurations = {}
@@ -226,7 +226,7 @@ def parse_printer_vars(file_path):
     return configurations
 
 def update_printer_config(selected_configs):
-    printer_cfg_path = '/home/pi/klippain/user_templates/printer.cfg'
+    printer_cfg_path = '~/klippain_config/user_templates/printer.cfg'
     modified_lines = []  # List to store modified lines for confirmation display
 
     # Read the file
