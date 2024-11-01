@@ -104,6 +104,11 @@ def update_printer_config(selected_configs):
 
     return modified_lines  # Return modified lines for confirmation
 
+@app.route('/download_status', methods=['GET'])
+def download_status():
+    global install_status
+    return jsonify(status=install_status)
+
 @app.route('/', methods=['GET', 'POST'])
 def download():
     global install_status
@@ -111,10 +116,12 @@ def download():
     if request.method == 'POST':
         try:
             check_download()
+            save_location = os.path.join(FRIX_CONFIG_PATH, 'config/mcu_definitions')
+            install_status.append(f"Saving to: {save_location}")
             # Populate MCU files once the repository is downloaded
-            main_mcu_files = list_mcu_files(os.path.join(FRIX_CONFIG_PATH, 'config/mcu_definitions/main'))
-            toolhead_mcu_files = list_mcu_files(os.path.join(FRIX_CONFIG_PATH, 'config/mcu_definitions/toolhead'))
-            mmu_mcu_files = list_mcu_files(os.path.join(FRIX_CONFIG_PATH, 'config/mcu_definitions/mmu'))
+            main_mcu_files = list_mcu_files(os.path.join(save_location, 'main'))
+            toolhead_mcu_files = list_mcu_files(os.path.join(save_location, 'toolhead'))
+            mmu_mcu_files = list_mcu_files(os.path.join(save_location, 'mmu'))
 
             session['main_mcu_files'] = main_mcu_files
             session['toolhead_mcu_files'] = toolhead_mcu_files
