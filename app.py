@@ -12,7 +12,7 @@ app.secret_key = 'supersecretkey'
 USER_CONFIG_PATH = os.path.expanduser('~/printer_data/config')
 FRIX_CONFIG_PATH = os.path.expanduser('~/klippain_config')
 BACKUP_PATH = os.path.expanduser('~/klippain_config_backups')
-FRIX_BRANCH = 'main'
+FRIX_BRANCH = 'gui-install'
 MOONRAKER_API_URL = 'http://localhost:7125/printer/restart'  # Moonraker API endpoint for restarting Klipper
 
 # Get paths from environment variables
@@ -44,7 +44,7 @@ def check_download():
     if not os.path.exists(FRIX_CONFIG_PATH):
         append_status("Downloading Klippain repository...")
         process = subprocess.Popen(
-            ["git", "clone", "-b", FRIX_BRANCH, "https://github.com/Frix-x/klippain.git", FRIX_CONFIG_PATH],
+            ["git", "clone", "-b", FRIX_BRANCH, "https://github.com/lokiagent/klippain.git", FRIX_CONFIG_PATH],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
