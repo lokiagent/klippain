@@ -1,8 +1,9 @@
 import os
 import subprocess
 import requests
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, Response
 from datetime import datetime
+import threading
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
@@ -42,14 +43,16 @@ def preflight_checks():
 def check_download():
     if not os.path.exists(FRIX_CONFIG_PATH):
         append_status("Downloading Klippain repository...")
-        subprocess.run(
-            ["git", "clone", "-b", FRIX_BRANCH,
-             "https://github.com/Frix-x/klippain.git", FRIX_CONFIG_PATH],
-            check=True
+        process = subprocess.Popen(
+            ["git", "clone", "-b", FRIX_BRANCH, "https://github.com/Frix-x/klippain.git", FRIX_CONFIG_PATH],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
         )
-        append_status("Download complete!")
-    else:
-        append_status("Klippain repository already found locally. Continuing...")
+        for line in process.stdout:
+            append_status(line.strip())
+        process.wait()
+        append_status(f"Saving to: {FRIX_CONFIG_PATH}")
 
 def backup_config():
     backup_dir = os.path.join(BACKUP_PATH, datetime.now().strftime('%Y_%m_%d-%H%M%S'))
@@ -59,12 +62,14 @@ def backup_config():
         append_status(f"Backup complete: {backup_dir}")
     else:
         append_status("No previous config found, skipping backup...")
+
 def list_mcu_files(mcu_path):
     """Helper to list files in a directory to populate MCU options."""
     files = []
     if os.path.exists(mcu_path):
         files = [f for f in os.listdir(mcu_path) if os.path.isfile(os.path.join(mcu_path, f))]
     return files
+
 def run_parse_config():
     subprocess.run(["python3", "parse_config.py", "--config", "/home/pi/klippain/user_templates/printer.cfg"], check=True)
 
@@ -109,27 +114,22 @@ def download_status():
     global install_status
     return jsonify(status=install_status)
 
+@app.route('/stream')
+def stream():
+    def event_stream():
+        while True:
+            if install_status:
+                message = install_status.pop(0)
+                yield f'data: {message}\n\n'
+    return Response(event_stream(), content_type='text/event-stream')
+
 @app.route('/', methods=['GET', 'POST'])
 def download():
     global install_status
     install_status = []  # Reset install status for new session
     if request.method == 'POST':
-        try:
-            check_download()
-            save_location = os.path.join(FRIX_CONFIG_PATH, 'config/mcu_definitions')
-            install_status.append(f"Saving to: {save_location}")
-            # Populate MCU files once the repository is downloaded
-            main_mcu_files = list_mcu_files(os.path.join(save_location, 'main'))
-            toolhead_mcu_files = list_mcu_files(os.path.join(save_location, 'toolhead'))
-            mmu_mcu_files = list_mcu_files(os.path.join(save_location, 'mmu'))
-
-            session['main_mcu_files'] = main_mcu_files
-            session['toolhead_mcu_files'] = toolhead_mcu_files
-            session['mmu_mcu_files'] = mmu_mcu_files
-            return redirect(url_for('install'))
-        except Exception as e:
-            append_status(f"Error during download: {e}")
-            return jsonify(status=install_status)
+        threading.Thread(target=check_download).start()
+        return redirect(url_for('install'))
 
     return render_template('download.html')
 
@@ -202,8 +202,10 @@ def restart_klipper():
     except requests.RequestException as e:
         append_status(f"Error communicating with Moonraker API: {e}")
         raise
+
 def run_parse_config():
     subprocess.run(["python3", "parse_config.py", "--config", "/home/pi/klippain/user_templates/printer.cfg"], check=True)
+
 def parse_printer_vars(file_path):
     configurations = {}
     with open(file_path, 'r') as file:
@@ -213,12 +215,15 @@ def parse_printer_vars(file_path):
                 configs = [cfg.strip() for cfg in value.split(',') if cfg.strip()]
                 configurations[key.strip()] = configs
     return configurations
+
 def update_printer_config(selected_configs):
     printer_cfg_path = '/home/pi/klippain/user_templates/printer.cfg'
     modified_lines = []  # List to store modified lines for confirmation display
+
     # Read the file
     with open(printer_cfg_path, 'r') as file:
         lines = file.readlines()
+
     # Process the file lines
     updated_lines = []
     for line in lines:
@@ -230,9 +235,11 @@ def update_printer_config(selected_configs):
             modified_lines.append(uncommented_line.strip())  # Store line without extra newline
         else:
             updated_lines.append(line)
+
     # Write the updated lines back to the file
     with open(printer_cfg_path, 'w') as file:
         file.writelines(updated_lines)
+
     return modified_lines  # Return modified lines for confirmation
 
 @app.route('/install_progress', methods=['GET'])
@@ -305,4 +312,4 @@ def configure():
     return render_template('configure.html', configure=configure)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)

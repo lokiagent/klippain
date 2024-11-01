@@ -8,23 +8,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script>
         $(document).ready(function() {
-            function fetchStatus() {
-                $.getJSON('/download_status', function(data) {
-                    $('#status').html('');
-                    data.status.forEach(function(status) {
-                        $('#status').append('<p>' + status + '</p>');
-                    });
-                });
-            }
-
-            // Fetch status every 2 seconds
-            setInterval(fetchStatus, 2000);
+            const eventSource = new EventSource('/stream');
+            eventSource.onmessage = function(event) {
+                $('#status').append('<p>' + event.data + '</p>');
+            };
         });
     </script>
 </head>
 <body>
     <h1>Download Page</h1>
-    <form action="{{ url_for('download') }}" method="post">
+    <form method="POST">
         <button type="submit">Start Download</button>
     </form>
     <div id="status">
