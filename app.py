@@ -49,10 +49,17 @@ def check_download():
             stderr=subprocess.PIPE,
             text=True
         )
-        for line in process.stdout:
+        stdout, stderr = process.communicate()
+        for line in stdout.splitlines():
             append_status(line.strip())
-        process.wait()
-        append_status(f"Saving to: {FRIX_CONFIG_PATH}")
+        for line in stderr.splitlines():
+            append_status(line.strip())
+        if process.returncode == 0:
+            append_status(f"Saving to: {FRIX_CONFIG_PATH}")
+        else:
+            append_status("Error during download.")
+    else:
+        append_status("Repository already exists. Skipping download.")
 
 def backup_config():
     backup_dir = os.path.join(BACKUP_PATH, datetime.now().strftime('%Y_%m_%d-%H%M%S'))
@@ -128,7 +135,9 @@ def download():
     global install_status
     install_status = []  # Reset install status for new session
     if request.method == 'POST':
-        threading.Thread(target=check_download).start()
+        download_thread = threading.Thread(target=check_download)
+        download_thread.start()
+        download_thread.join()  # Wait for the download to complete
         return redirect(url_for('install'))
 
     return render_template('download.html')
